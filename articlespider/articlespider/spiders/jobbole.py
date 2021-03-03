@@ -51,7 +51,7 @@ class JobboleSpider(scrapy.Spider):
             post_url = post_node.css('h2 a::attr(href)').extract_first("")
             print("详细地址：" + post_url)
             # 重定向到详情信息
-            yield Request(url=parse.urljoin(response.url, post_url), meta={"front_image_url": 'https:'+image_url}, callback=self.parse_detail)
+            yield Request(url=parse.urljoin(response.url, post_url), meta={"front_image_url": image_url}, callback=self.parse_detail)
 
         # 提取下一页并交给scrapy进行下载（翻页） 46和47含义相同，一个是css一个是xpath
         """
@@ -89,7 +89,10 @@ class JobboleSpider(scrapy.Spider):
             tags = ",".join(tag_list)
             article_itme["tags"] = tags
             article_itme["url"] = response.url
-            article_itme["front_image_url"] = [response.meta.get("front_image_url", "")]
+            if response.meta.get("front_image_url", ""):
+                article_itme["front_image_url"] = [response.meta.get("front_image_url", "")]
+            else:
+                article_itme["front_image_url"] = []
 
             """
             # 评论（JS获取不到）

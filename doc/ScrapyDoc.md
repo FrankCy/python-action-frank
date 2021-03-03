@@ -33,7 +33,8 @@ scrapy shell https://news.cnblogs.com/n/689294/
 response.css('#news_title a::text').extract_first('')
 # 返回数据：'Google Workspace迎来远程办公新体验'
 ```
-- 反爬方案1（解决js加载的问题）
+## 实战
+### 反爬方案1（解决js加载的问题）
 ```shell
 # 添加requests库（用于解析js加载的数据）
 pip3 install -i https://pypi.douban.com/simple requests
@@ -55,7 +56,7 @@ json.loads(reponse.text)
 j_data = json.loads(reponse.text)
 j_data["TotalView"]
 ```
-- 增加爬虫命中率
+### 增加爬虫命中率
 ```python
 ROBOTSTXT_OBEY 改为 False
 ROBOTSTXT_OBEY：模式是True，意思是遵循ROBOTSTXT_OBEY规则，部分链接不允许爬取
@@ -67,7 +68,7 @@ ITEM_PIPELINES = {
    'articlespider.pipelines.ArticlespiderPipeline': 300,
 }
 ```
-- 爬图片
+### 爬图片
 ```python
 # 官方文档：https://docs.scrapy.org/en/latest/topics/media-pipeline.html
 # pipelines中添加：
@@ -78,6 +79,33 @@ IMAGES_STORE = '/path/to/valid/dir'
 pip3 install -i https://pypi.douban.com/simple pillow   
 # 异常排查问题:代表目标对象第一个字符有问题
 ValueError: Missing scheme in request url: /
+```
+### 将item保存在文件内
+```python
+import codecs
+import json
 
+# 保存爬取的信息
+class JsonWithEncodingPipeline(object):
+    # 自定义json文件的导出
+    def __init__(self):
+        # 打开json(w代表爬取，如果有相同内容，不保存，a代表为追加）
+        self.file = codecs.open("article.json", "w", encoding="utf-8")
+
+    # 处理文件
+    def process_item(self, item, spider):
+        # 将数据转换成字符串
+        # ensure_ascii:False
+        lines = json.dumps(dict(item), ensure_ascii=False) + "\n"
+        # 写入json文件内
+        self.file.write(lines)
+        return item
+
+    # 文件关闭
+    def spider_closed(self, spider):
+        self.file.close()
+```
+### 定义表结构，并入库
+```shell
 
 ```

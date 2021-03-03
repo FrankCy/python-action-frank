@@ -66,10 +66,12 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   # 先执行爬取逻辑
-   'articlespider.pipelines.ArticlespiderPipeline': 300,
    # 再执行图片处理逻辑
-   'articlespider.pipelines.ArticleImagePipeline': 1
+   'articlespider.pipelines.ArticleImagePipeline': 1,
+   # 保存item
+   'articlespider.pipelines.JsonWithEncodingPipeline': 2,
+   # 先执行爬取逻辑
+   'articlespider.pipelines.ArticlespiderPipeline': 300
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
