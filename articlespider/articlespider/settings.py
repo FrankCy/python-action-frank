@@ -7,6 +7,9 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import sys
+import os
+
 BOT_NAME = 'articlespider'
 
 SPIDER_MODULES = ['articlespider.spiders']
@@ -17,7 +20,7 @@ NEWSPIDER_MODULE = 'articlespider.spiders'
 #USER_AGENT = 'articlespider (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -62,9 +65,12 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'articlespider.pipelines.ArticlespiderPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   # 先执行爬取逻辑
+   'articlespider.pipelines.ArticlespiderPipeline': 300,
+   # 再执行图片处理逻辑
+   'articlespider.pipelines.ArticleImagePipeline': 1
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -86,3 +92,11 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+# 获取项目图片路径
+project_dir = os.path.dirname(os.path.abspath(__file__))
+# 设置文件下载位置
+IMAGES_STORE = os.path.join(project_dir, "images")
+# 设置保存的图片地址key，是由自定义参数中获取
+IMAGES_URLS_FIELD = "front_image_url"
+

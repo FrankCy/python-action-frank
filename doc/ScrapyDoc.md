@@ -9,7 +9,7 @@ pip3 install -i https://pypi.douban.com/simple scrapy
 - https://docs.scrapy.org/en/latest/
  
 ## 简介Scrapy
-自身含有命令 scrapy，可创建工程，自动生成爬虫代码；
+自身含有命令 scrapy，可创建工程，自动生成爬虫代码；</br>
 ***ctrl+z 退出终端scrapy命令***
 
 - 创建项目 articlespider
@@ -54,4 +54,30 @@ json.loads(reponse.text)
 # 放入对象中，并获取某对象
 j_data = json.loads(reponse.text)
 j_data["TotalView"]
+```
+- 增加爬虫命中率
+```python
+ROBOTSTXT_OBEY 改为 False
+ROBOTSTXT_OBEY：模式是True，意思是遵循ROBOTSTXT_OBEY规则，部分链接不允许爬取
+```
+- Pipeliens的意思
+```python
+# 300：优先级，数字越小越先执行，设置管道ITEM_PIPELINES内容，可以做爬取过程编排使用
+ITEM_PIPELINES = {
+   'articlespider.pipelines.ArticlespiderPipeline': 300,
+}
+```
+- 爬图片
+```python
+# 官方文档：https://docs.scrapy.org/en/latest/topics/media-pipeline.html
+# pipelines中添加：
+ITEM_PIPELINES = {'scrapy.pipelines.images.ImagesPipeline': 1}
+# 设置IMAGES_STORE = '/path/to/valid/dir'
+IMAGES_STORE = '/path/to/valid/dir'
+# 下载保存图片的工具包（图片处理包）
+pip3 install -i https://pypi.douban.com/simple pillow   
+# 异常排查问题:代表目标对象第一个字符有问题
+ValueError: Missing scheme in request url: /
+
+
 ```
