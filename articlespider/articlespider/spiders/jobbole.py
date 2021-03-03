@@ -2,6 +2,12 @@
 from urllib import parse
 import scrapy
 
+# 反爬的处理工具
+import requests
+# 动态获取ID，解决反爬使用
+import re
+import json
+
 # line 4的代码应用在23、24、25行
 # from scrapy import Selector
 
@@ -33,7 +39,7 @@ class JobboleSpider(scrapy.Spider):
         1.获取新闻列表页的新闻url，交给scrapy进行下载后调用相应的解析方法
         2.获取下一页的url并交给scrapy进行下载，下载完成后交给parse继续跟进
         """
-        post_nodes = response.css('#news_list .news_block')
+        post_nodes = response.css('#news_list .news_block')[:1]
         for post_node in post_nodes:
             image_url = post_node.css('.entry_summary a img::attr(href)').extract_first("")
             print("图片地址：" + image_url)
@@ -50,14 +56,43 @@ class JobboleSpider(scrapy.Spider):
         if next_url == "Next >":
             next_url = response.css('div.pager a:last-child::attr(href)').extract_first("")
             yield Request(url = parse.urljoin(response.url, next_url), callback=self.parse)
-
+        """
+        # --------------------------------------------------------
         """
         # 方法2：
         next_url = response.xpath("//a[contains(text(), 'Next >')]/@href").extract_first("")
         yield Request(url = parse.urljoin(response.url, next_url), callback=self.parse)
+        """
 
         pass
 
     def parse_detail(self, response):
-        print("执行 parse_detail")
+
+        match_re = re.match(".*?(\d+)", response.url)
+        if match_re:
+            # 标题
+            title = response.css('#news_title a::text').extract_first('')
+            # 时间
+            create_date = response.css('#news_info > span.time::text').extract_first('')
+            # 内容
+            content = response.css('#news_content').extract_first('')
+            # 标签
+            tag_list = response.css('.news_tags a::text').extract()
+            tags = ",".join(tag_list)
+            # 评论（JS获取）
+            comment = response.css('#news_info > span.comment > a').extract()
+            # 点赞数（JS获取）
+            agree = response.css('#news_otherinfo > div:nth-child(1) > div.diggit > span::text').extract()
+
+            post_id = match_re.group(1)
+            # source_url 应该是动态的
+            source_url = 'https://news.cnblogs.com';
+            html = requests.get(parse.urljoin(source_url, "NewsAjax/GetAjaxNewsInfo?contentId={}".format(post_id)))
+            j_data = json.loads(html.text)
+            # 点赞数
+            praise_nums = j_data["DiggCount"]
+            # 兴趣数
+            fav_nums = j_data["TotalView"]
+            # 评论数
+            comment_nums = j_data["CommentCount"]
         pass
