@@ -44,7 +44,7 @@ class JobboleSpider(scrapy.Spider):
         1.获取新闻列表页的新闻url，交给scrapy进行下载后调用相应的解析方法
         2.获取下一页的url并交给scrapy进行下载，下载完成后交给parse继续跟进
         """
-        post_nodes = response.css('#news_list .news_block')[:1]
+        post_nodes = response.css('#news_list .news_block')[:2]
         for post_node in post_nodes:
             image_url = post_node.css('.entry_summary a img::attr(src)').extract_first("")
             print("图片地址：" + image_url)
@@ -80,6 +80,10 @@ class JobboleSpider(scrapy.Spider):
             article_itme["title"] = title
             # 时间
             create_date = response.css('#news_info > span.time::text').extract_first('')
+            # 正则提取文字中的时间
+            match_re = re.match(".*?(\d+.*)", create_date)
+            if match_re:
+                create_date = match_re.group(1)
             article_itme["create_date"] = create_date
             # 内容
             content = response.css('#news_content').extract_first('')
@@ -173,15 +177,19 @@ class JobboleSpider(scrapy.Spider):
     def parse_nums(self, response):
 
         j_data = json.loads(response.text)
-        # 点赞数
-        praise_nums = j_data["DiggCount"]
-        print("点赞数：", praise_nums)
-        # 兴趣数
-        fav_nums = j_data["TotalView"]
-        print("兴趣数：", praise_nums)
-        # 评论数
-        comment_nums = j_data["CommentCount"]
-        print("评论数：", praise_nums)
+        praise_nums = 0
+        fav_nums = 0
+        comment_nums = 0
+        if j_data:
+            # 点赞数
+            praise_nums = j_data["DiggCount", 0]
+            print("点赞数：", praise_nums)
+            # 兴趣数
+            fav_nums = j_data["TotalView", 0]
+            print("兴趣数：", fav_nums)
+            # 评论数
+            comment_nums = j_data["CommentCount", 0]
+            print("评论数：", comment_nums)
 
         article_item = response.meta.get("article_item", "")
         article_item["praise_nums"] = praise_nums

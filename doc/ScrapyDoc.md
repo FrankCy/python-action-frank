@@ -106,6 +106,79 @@ class JsonWithEncodingPipeline(object):
         self.file.close()
 ```
 ### 定义表结构，并入库
+```sql
+- 定义一张表
+CREATE TABLE `jobbole_article`  (
+  `title` varchar(255) NOT NULL COMMENT '标题',
+  `url` varchar(500) NOT NULL,
+  `url_object_id` varchar(50) NOT NULL,
+  `front_image_path` varchar(255) NULL,
+  `front_image_url` varchar(255) NULL,
+  `parise_nums` int(255) NOT NULL,
+  `comment_nums` int(255) NULL,
+  `fav_nums` int(255) NULL,
+  `tags` varchar(255) NULL,
+  `content` longtext NULL,
+  `create_date` datetime(0) NULL,
+  PRIMARY KEY (`url_object_id`)
+);
+```
+- 安装mysql
 ```shell
+pip3 install -i https://pypi.douban.com/simple mysqlclient
+# 如果碰到以下错误
+ERROR: Command errored out with exit status 1:
+ command: /usr/local/opt/python@3.8/bin/python3.8 -c 'import sys, setuptools, tokenize; sys.argv[0] = '"'"'/private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/setup.py'"'"'; __file__='"'"'/private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/setup.py'"'"';f=getattr(tokenize, '"'"'open'"'"', open)(__file__);code=f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' egg_info --egg-base /private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-pip-egg-info-nj3ln6ft
+     cwd: /private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/
+Complete output (10 lines):
+/bin/sh: mysql_config: command not found
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/setup.py", line 17, in <module>
+    metadata, options = get_config()
+  File "/private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/setup_posix.py", line 47, in get_config
+    libs = mysql_config("libs_r")
+  File "/private/var/folders/40/xfwrqjw5483cwh43vjdcj9_40000gn/T/pip-install-rxftxc00/mysqlclient_b15417b1f5c24e84a0145fa2228c6009/setup_posix.py", line 29, in mysql_config
+    raise EnvironmentError("%s not found" % (mysql_config.path,))
+OSError: mysql_config not found
+# 软链以下mysql_config，可以找到它（这个方法可以使安装mysqlclient顺利进行，但是在实际使用mysql又会出现别的问题，建议重新装mysql）
+sudo ln -s /usr/local/mysql/bin/mysql_config /usr/local/bin/mysql_config
+# 然后再执行
+pip3 install -i https://pypi.douban.com/simple mysqlclient
+```
 
+- 将数据存入mysql
+```python
+# 保存数据至mysql
+class MysqlPipeline(object):
+    def __int__(self):
+        # 初始化链接（定义全局常量）
+        self.conn = MySQLdb.connect("127.0.0.1", "root", "root", "article_spider", charset="utf8", use_unicode=True)
+        self.cursor = self.conn.cursor()
+
+    def process_item(self, item, spider):
+        insert_sql = """
+            insert into jobbole_article(title, url, url_object_id, front_image_path, front_image_url, parise_nums, comment_nums, fav_nums, tags, content, create_date) 
+            values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        params = list()
+        params.append(item.get("title", ""))
+        params.append(item.get("url", ""))
+        params.append(item.get("url_object_id", ""))
+        params.append(item.get("front_image_path", ""))
+        # 空列表转换字符串
+        front_image = ",".join(item.get("front_image_url", []))
+        params.append(front_image)
+        params.append(item.get("parise_nums", 0))
+        params.append(item.get("comment_nums", 0))
+        params.append(item.get("fav_nums", 0))
+        params.append(item.get("tags", ""))
+        params.append(item.get("content", ""))
+        params.append(item.get("create_date", "1970-07-01"))
+        # 执行sql
+        self.cursor.execute(insert_sql, tuple(params))
+        # 提交
+        self.conn.commit()
+
+        return item
 ```

@@ -70,6 +70,10 @@ ITEM_PIPELINES = {
    'articlespider.pipelines.ArticleImagePipeline': 1,
    # 保存item
    'articlespider.pipelines.JsonWithEncodingPipeline': 2,
+   # JSON Exporter
+   'articlespider.pipelines.JsonExporterPipeline': 3,
+   # 向数据库插入数据
+   'articlespider.pipelines.MysqlPipeline': 4,
    # 先执行爬取逻辑
    'articlespider.pipelines.ArticlespiderPipeline': 300
 }
