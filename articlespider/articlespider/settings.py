@@ -73,7 +73,9 @@ ITEM_PIPELINES = {
    # JSON Exporter
    'articlespider.pipelines.JsonExporterPipeline': 3,
    # 向数据库插入数据
-   'articlespider.pipelines.MysqlPipeline': 4,
+   # 'articlespider.pipelines.MysqlPipeline': 4,
+   # 异步插入
+   'articlespider.pipelines.MysqlTwistedPipeline': 4,
    # 先执行爬取逻辑
    'articlespider.pipelines.ArticlespiderPipeline': 300
 }
@@ -106,3 +108,9 @@ IMAGES_STORE = os.path.join(project_dir, "images")
 # 设置保存的图片地址key，是由自定义参数中获取
 IMAGES_URLS_FIELD = "front_image_url"
 
+
+# 定义MySQL配置
+MYSQL_HOST='127.0.0.1'
+MYSQL_DBNAME='article_spider'
+MYSQL_USER='root'
+MYSQL_PASSWORD='root'

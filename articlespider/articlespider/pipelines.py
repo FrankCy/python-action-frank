@@ -12,6 +12,8 @@ import json
 
 from scrapy.exporters import JsonItemExporter
 from scrapy.pipelines.images import ImagesPipeline
+# 异步数据库链接使用
+from twisted.enterprise import adbapi
 
 import MySQLdb
 
@@ -91,6 +93,64 @@ class MysqlPipeline(object):
         self.conn.commit()
 
         return item
+
+class MysqlTwistedPipeline(object):
+
+    # 执行步骤2（通过重载方法初始化了dbpool
+    def __int__(self, dbpool):
+        self.dbpool = dbpool
+
+    # 重载方法（执行步骤1）
+    @classmethod
+    def from_settings(cls, settings):
+        from MySQLdb.cursors import DictCursor
+        dbparms = dict(
+            # 从settings文件中读取配置，不需要在上面写死
+            host=settings["MYSQL_HOST"],
+            db=settings["MYSQL_DBNAME"],
+            user=settings["MYSQL_USER"],
+            passwd=settings["MYSQL_PASSWORD"],
+            charset='utf8',
+            cursorclass=DictCursor,
+            use_unicode=True,
+        )
+        dbpool = adbapi.ConnectionPool("MySQLdb", **dbparms)
+        return cls(dbpool)
+
+    # 定义函数
+    def process_item(self, item, spider):
+        # 定义执行逻辑，逻辑为do_insert，传递参数item
+        query = self.dbpool.runInteraction(self.do_insert, item)
+        # 定义异常回调，回调为handle_error
+        query.addErrback(self.handle_error, item, spider)
+
+    # 持久化出错后的错误处理
+    def handle_error(self, failure, item, spider):
+        print(failure)
+
+    # 持久化数据
+    def do_insert(self, cursor, item):
+        insert_sql = """
+                    insert into jobbole_article(title, url, url_object_id, front_image_path, front_image_url, parise_nums, comment_nums, fav_nums, tags, content, create_date) 
+                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+        params = list()
+        params.append(item.get("title", ""))
+        params.append(item.get("url", ""))
+        params.append(item.get("url_object_id", ""))
+        params.append(item.get("front_image_path", ""))
+        # 空列表转换字符串
+        front_image = ",".join(item.get("front_image_url", []))
+        params.append(front_image)
+        params.append(item.get("parise_nums", 0))
+        params.append(item.get("comment_nums", 0))
+        params.append(item.get("fav_nums", 0))
+        params.append(item.get("tags", ""))
+        params.append(item.get("content", ""))
+        params.append(item.get("create_date", "1970-07-01"))
+
+        # 执行
+        cursor.execute(insert_sql, tuple(params))
 
 
 # 初始化图片保存地址
