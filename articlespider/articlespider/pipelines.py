@@ -132,7 +132,7 @@ class MysqlTwistedPipeline(object):
     def do_insert(self, cursor, item):
         insert_sql = """
                     insert into jobbole_article(title, url, url_object_id, front_image_path, front_image_url, parise_nums, comment_nums, fav_nums, tags, content, create_date) 
-                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE parise_nums=VALUES(parise_nums)
                 """
         params = list()
         params.append(item.get("title", ""))

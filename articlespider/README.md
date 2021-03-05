@@ -123,7 +123,7 @@ CREATE TABLE `jobbole_article`  (
   PRIMARY KEY (`url_object_id`)
 );
 ```
-- 安装mysql
+### 安装mysql
 ```shell
 pip3 install -i https://pypi.douban.com/simple mysqlclient
 # 如果碰到以下错误
@@ -147,7 +147,7 @@ sudo ln -s /usr/local/mysql/bin/mysql_config /usr/local/bin/mysql_config
 pip3 install -i https://pypi.douban.com/simple mysqlclient
 ```
 
-- 持久化爬取数据mysql
+### 持久化爬取数据mysql
 ```python
 # 保存数据至mysql
 class MysqlPipeline(object):
@@ -183,7 +183,7 @@ class MysqlPipeline(object):
         return item
 ```
 
-- 异步持久化爬取数据mysql
+### 异步持久化爬取数据mysql
 ```python
 
 # 异步数据库链接使用
@@ -247,3 +247,12 @@ class MysqlTwistedPipeline(object):
         # 执行
         cursor.execute(insert_sql, tuple(params))
 ```
+### 重复爬取指定要修改的字段（解决数据主键冲突）
+```python
+insert into jobbole_article(title, url, url_object_id, front_image_path, front_image_url, parise_nums, comment_nums, fav_nums, tags, content, create_date) 
+values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE parise_nums=VALUES(parise_nums)
+```
+***ON DUPLICATE KEY UPDATE parise_nums=VALUES(parise_nums)：代表发生冲突时，只更新parise_nums***
+### Itemloader的使用
+用于统一处理要爬取的字段处理方式，比如String、Int、List的转换，不用在每个爬取文件中单独处理，类似变量格式化监听工具。
+
