@@ -2,13 +2,10 @@
 - - -
 ## 简介
 Scrapy Redis 分布式爬虫
-
-## 原理
 - 集成scrapy redis作为分布式爬虫的调度器，都实现了，需要分析源码才知道具体如何实现的统一调度；
 
-
-
-
+## 官方文档
+https://scrapy-chs.readthedocs.io/zh_CN/latest/topics/spiders.html
 - - -
 - - -
 # Scrapy 
@@ -269,3 +266,54 @@ values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE pari
 ### Itemloader的使用
 用于统一处理要爬取的字段处理方式，比如String、Int、List的转换，不用在每个爬取文件中单独处理，类似变量格式化监听工具。
 
+
+### 部署项目
+```shell
+### 先安装server端，再打包爬虫脚本，修改打包后的脚本
+# （Server端搭建）先安装scrapyd命名，让系统拥有scrapyd命令
+> pip3 install scrapyd
+
+# （Server端搭建）启动scrapyd，任意目录下执行下面命令,地址：hots:6800
+> scrapyd
+
+# （打包工具）在要发布的项目根目录执行下面代码，生成script（内涵scrapyd-deploy）
+> pip3 install scrapyd-client
+
+# 进入要上传的文件目录
+> cd ......../EcommerceSpider
+
+# 查看文件scrapy.cfg（此文件中deploy配置的url是要部署的目标地址）
+> cat scrapy.cfg
+# 记住：后面的内容，是命令用的目标名
+#[deploy:EcommerceSpider]
+# 指向打包的目录
+#url = http://172.16.68.7:6800/
+# 指向要打包的工程
+#project = EcommerceSpider
+
+# 在项目目录下，运行部署命令
+> scrapyd deploy 
+
+# 执行部署到远程的命令，执行下面命令，会把工程打包到url对应的地址下
+# scrapyd-deploy name(depoloy:<name>) -p project(EcommerceSpider)
+> scrapyd-deploy EcommerceSpider -p EcommerceSpider
+
+
+# 查看服务器scrapyd运行状态
+> curl http://172.16.68.92:6800/daemonstatus.json
+{"node_name": "ip-172-16-68-92", "status": "ok", "pending": 0, "running": 6, "finished": 0}
+
+
+# 停止爬虫
+#语法：
+> curl http://host:port/cancel.json -d project=projectName -d job=jobId
+#例：
+> curl http://172.16.68.92:6800/cancel.json -d project=EcommerceSpider -d job=a7ae65e0884d11ebb94b02e42482b910
+# 启动爬虫
+#语法：
+> curl http://host:port/schedule.json -d project=projectName -d spider=spider_script_name
+#例：
+> curl http://host:6800/schedule.json -d project=xxxSpiderName -d spider=xxxSpiderName
+
+ 
+```
