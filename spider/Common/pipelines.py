@@ -31,7 +31,10 @@ class MongoPipeline(object):
         defer.returnValue(item)
 
     def _insert(self, item, out):
-        self.mongodb[self.col].insert(dict(item))
+        if item.get("title", ""):
+            fid = str(self.mongodb[self.col].find_one({"title": item.get("title", "")}))
+            if not fid or fid == 'None':
+                self.mongodb[self.col].insert(dict(item))
         reactor.callFromThread(out.callback, item)
 
 
