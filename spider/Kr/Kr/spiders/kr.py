@@ -9,9 +9,6 @@ from spider.Common.items import KrNewsInformation
 logger = logging.getLogger(__name__)
 
 class KrSpider(RedisSpider):
-    name = 'kr'
-    allowed_domains = ['36kr.com']
-    start_urls = ['http://36kr.com/']
 
     name = 'kr'
     allowed_domains = ['36kr.com']
@@ -54,6 +51,6 @@ class KrSpider(RedisSpider):
                 # 正文链接
                 kr_news_information['text_link'] = news.xpath('div[2]/div/div[1]/a/@href').get()
                 # 爬取时间
-                kr_news_information['text_link'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                kr_news_information['spider_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 # 持久化数据
                 yield kr_news_information
