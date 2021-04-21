@@ -31,6 +31,7 @@ nohup python3 -u /root/pyspider/kr/main.py > /root/otto_3.log 2>&1 &
 - web api
 ```shell
 key:36k:start_urls
+# 可选
 url:https://36kr.com/newsflashes
 ```
 

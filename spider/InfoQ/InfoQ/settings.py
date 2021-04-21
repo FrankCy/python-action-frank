@@ -6,6 +6,7 @@
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+from spider.Common.storages import *
 
 BOT_NAME = 'InfoQ'
 
@@ -94,19 +95,6 @@ DOWNLOADER_MIDDLEWARES = {
 
 
 # ------------------------ 本地 ------------------------
-MONGO_URI = 'mongodb://127.0.0.1:27017/'
-MONGO_DB = 'spider_InfoQ'
-MONGO_SET = 'InfoQ_news'
-
-
-REDIS_HOST = '127.0.0.1'
-REDIS_PORT = '6379'
-REDIS_DB = 8
-REDIS_PARAMS = {
-    'password': '123456',
-    'db': '8'
-}
-
 PROXY_TYPE = 1
 
 # 超时时间设置为60S

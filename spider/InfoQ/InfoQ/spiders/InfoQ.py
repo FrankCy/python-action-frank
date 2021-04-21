@@ -69,11 +69,19 @@ class InfoQSpider(RedisSpider):
             info_q_news_information = InfoQNewsInformation()
             browser = webdriver.Chrome(chrome_options=chrome_pars())
             browser.get(spider_url)
-            # browser.implicitly_wait(20)
-            time.sleep(5)
+            while True:
+                if len(browser.page_source) > 10000:
+                    break
+                else:
+                    print(len(browser.page_source))
+                    browser.get(spider_url)
+                    time.sleep(10)
+                    browser.implicitly_wait(10)
+            browser.implicitly_wait(5)
+            # time.sleep(5)
             browser.maximize_window()
-            # browser.implicitly_wait(3)
-            time.sleep(5)
+            browser.implicitly_wait(3)
+            # time.sleep(5)
 
             # 创建匹配表达式
             xpath_list = ['//*[@id="layout"]/div[2]/div[2]/div[1]/div[3]/div[3]/div/div[1]/div']
@@ -85,6 +93,7 @@ class InfoQSpider(RedisSpider):
                     break
             if not news_list:
                 logger.error("url:" + response.url + "，检索无数据")
+                logger.info(len(browser.page_source))
                 browser.quit()
                 return
             else:
@@ -166,9 +175,6 @@ def chrome_pars():
     # 设置开发者模式启动，该模式下webdriver属性为正常值
     chrome_options.add_experimental_option('excludeSwitches', ['enable-automation'])
     chrome_options.add_argument('User-Agent=' + random.choice(UserAgent_List))
-    # proxy = '--proxy-server=http://' + get_proxy_url_one(0).replace('\n', '').replace('\r', '').replace(' ', '')
-    # logger.info('chrome_pars proxy------------>' + proxy)
-    # chrome_options.add_argument(proxy)
 
     return chrome_options
 
@@ -176,18 +182,6 @@ def chrome_pars():
 UserAgent_List = [
     "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2226.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.4; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2225.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2224.3 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 4.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.67 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.67 Safari/537.36",
     "Mozilla/5.0 (X11; OpenBSD i386) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1944.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.3319.102 Safari/537.36",
